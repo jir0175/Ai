@@ -16,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name="learning_goal")
 public class LearningGoal {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -37,9 +37,4 @@ public class LearningGoal {
     @JoinColumn(name = "user_id",nullable = false)
     private User user;
 
-    public enum LearningLevel{
-        BEGINNER,
-        INTERMEDIATE,
-        ADVANCED
-    }
 }
