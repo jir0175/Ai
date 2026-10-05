@@ -9,6 +9,10 @@ import com.aimentor.ai_mentor.learning_goal.DTO.ResponseCreateGoal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.UUID;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -21,5 +25,8 @@ public class LearningGoalController {
     public ResponseCreateGoal postCreateGoal(@RequestBody @Valid RequestCreate newGoal) {
         return (learningGoalService.createGoal(newGoal));
     }
-    
+    @GetMapping("/{id}")
+    public ResponseCreateGoal getGoalById(@PathVariable  UUID id){
+        return learningGoalService.findGoalById(id);
+    }
 }

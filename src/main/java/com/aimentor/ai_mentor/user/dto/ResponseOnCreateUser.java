@@ -8,6 +8,6 @@ import java.util.UUID;
 @Setter
 @Getter
 public class ResponseOnCreateUser {
-    private UUID id;
+    
     private String email;
 }
