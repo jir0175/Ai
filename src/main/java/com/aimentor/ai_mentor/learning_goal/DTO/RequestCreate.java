@@ -5,9 +5,10 @@ import java.time.LocalDate;
 
 import com.aimentor.ai_mentor.learning_goal.LearningLevel;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 
 import lombok.Setter;
@@ -23,8 +24,10 @@ public class RequestCreate {
     @NotNull 
     private LearningLevel level;
     @NotNull
+    @Positive 
     private BigDecimal hourPerDay;
     @NotNull
+    @FutureOrPresent 
     private LocalDate deadline;
 
     

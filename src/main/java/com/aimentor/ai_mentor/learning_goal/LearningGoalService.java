@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.aimentor.ai_mentor.learning_goal.DTO.RequestCreate;
 import com.aimentor.ai_mentor.learning_goal.DTO.ResponseCreateGoal;
+import com.aimentor.ai_mentor.learning_goal.exception.GoalAccessException;
+import com.aimentor.ai_mentor.learning_goal.exception.GoalNotFoundException;
 import com.aimentor.ai_mentor.user.User;
 
 import lombok.RequiredArgsConstructor;
@@ -44,14 +46,22 @@ public ResponseCreateGoal createGoal(RequestCreate newGoal){
 
 //found goal by id
 public ResponseCreateGoal findGoalById(UUID id){
-    LearningGoal goal =learningGoalsRepository.findById(id).orElseThrow(() -> new RuntimeException("error"));
+    Authentication authentication =
+        SecurityContextHolder.getContext().getAuthentication();
+
+    User user = (User) authentication.getPrincipal();
+    
+    LearningGoal goal =learningGoalsRepository.findById(id).orElseThrow(() -> new GoalNotFoundException("Goal not found"));
+    if(goal.getUser().getId().equals(user.getId())){
     ResponseCreateGoal responseGoal = new ResponseCreateGoal();
     responseGoal.setDeadline(goal.getDeadline());
     responseGoal.setHourPerDay(goal.getHourPerDay());
     responseGoal.setLevel(goal.getLevel());
     responseGoal.setSubject(goal.getSubject());
     return responseGoal;
-
+    }else{
+        throw new GoalAccessException("You do not have access to this goal");
+    }
 
 }
 }
