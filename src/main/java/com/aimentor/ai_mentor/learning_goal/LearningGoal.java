@@ -1,5 +1,6 @@
 package com.aimentor.ai_mentor.learning_goal;
 
+import com.aimentor.ai_mentor.learning_path.LearningPath;
 import com.aimentor.ai_mentor.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -37,4 +38,6 @@ public class LearningGoal {
     @JoinColumn(name = "user_id",nullable = false)
     private User user;
 
+    @OneToOne(mappedBy = "goal")
+    private LearningPath learningPath;
 }
