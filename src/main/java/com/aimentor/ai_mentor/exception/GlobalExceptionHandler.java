@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.aimentor.ai_mentor.learning_goal.exception.GoalAccessException;
 import com.aimentor.ai_mentor.learning_goal.exception.GoalNotFoundException;
+import com.aimentor.ai_mentor.learning_path.exception.LearningPathAlreadyExistsException;
 import com.aimentor.ai_mentor.user.exception.EmailAlreadyExistsException;
 import com.aimentor.ai_mentor.user.exception.InvalidCredentialsException;
 
@@ -45,5 +46,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(GoalAccessException.class)
     public ResponseEntity<String> goalAccessException(GoalAccessException ex){
         return ResponseEntity.status(403).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(LearningPathAlreadyExistsException.class)
+    public ResponseEntity<String> learningPathExist(LearningPathAlreadyExistsException ex){
+        return ResponseEntity.status(409).body(ex.getMessage());
     }
 }
