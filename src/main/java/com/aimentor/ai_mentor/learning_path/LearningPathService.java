@@ -13,6 +13,7 @@ import com.aimentor.ai_mentor.learning_goal.exception.GoalNotFoundException;
 import com.aimentor.ai_mentor.learning_path.DTO.ResponseCreatePlan;
 import com.aimentor.ai_mentor.learning_path.exception.LearningPathAlreadyExistsException;
 import com.aimentor.ai_mentor.user.User;
+import com.aimentor.ai_mentor.ai.OpenRouterService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,30 +22,63 @@ import lombok.RequiredArgsConstructor;
 public class LearningPathService {
     private final LearningPathRepository learningPathRepository;
     private final LearningGoalsRepository learningGoalsRepository;
-
+    private final OpenRouterService openRouterService;
     //create plan
-    public ResponseCreatePlan createPlan(UUID goalId,String plan){
-        LearningGoal goal = learningGoalsRepository.findById(goalId).orElseThrow(() -> new GoalNotFoundException("Learning goal not found"));
-        Authentication authentication =
-        SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        boolean correctUser = user.getId().equals(goal.getUser().getId());
-        boolean planExists = learningPathRepository.existsByGoal_Id(goalId);
-        if(correctUser && !planExists){
-            
-                LearningPath path = new LearningPath();
-                path.setPlan(plan);
-                path.setGoal(goal);
-                learningPathRepository.save(path);
-                ResponseCreatePlan createPlan = new ResponseCreatePlan();
-                createPlan.setPlan(path.getPlan());
-                createPlan.setFinishedSteps(path.getFinishedSteps());
-                return createPlan;
-            }else if(planExists && correctUser){
-                throw new LearningPathAlreadyExistsException("A learning path already exists for this goal");
-            }else{
-                throw new GoalAccessException("You do not have access to this goal");
-            }
-            
+    public ResponseCreatePlan createPlan(UUID goalId) {
+    LearningGoal goal = learningGoalsRepository.findById(goalId)
+            .orElseThrow(() -> new GoalNotFoundException("Learning goal not found"));
+
+    Authentication authentication =
+            SecurityContextHolder.getContext().getAuthentication();
+
+    User user = (User) authentication.getPrincipal();
+
+    boolean correctUser = user.getId().equals(goal.getUser().getId());
+
+    if (!correctUser) {
+        throw new GoalAccessException("You do not have access to this goal");
     }
-}
+
+    boolean planExists = learningPathRepository.existsByGoal_Id(goalId);
+
+    if (planExists) {
+        throw new LearningPathAlreadyExistsException(
+                "A learning path already exists for this goal"
+        );
+    }
+
+    String prompt = """
+            Create a practical study plan in Russian.
+
+            Subject: %s
+            Current level: %s
+            Available study time per day: %s hours
+            Deadline: %s
+
+            Requirements:
+            - Divide the plan into clear stages.
+            - Include concrete topics and practical exercises.
+            - Make the workload realistic for the available daily study time.
+            - Organize the plan according to the deadline.
+            - Return only the study plan, without an introduction.
+            """.formatted(
+                    goal.getSubject(),
+                    goal.getLevel(),
+                    goal.getHourPerDay(),
+                    goal.getDeadline()
+            );
+
+    String plan = openRouterService.ask(prompt);
+
+    LearningPath path = new LearningPath();
+    path.setPlan(plan);
+    path.setGoal(goal);
+
+    learningPathRepository.save(path);
+
+    ResponseCreatePlan response = new ResponseCreatePlan();
+    response.setPlan(path.getPlan());
+    response.setFinishedSteps(path.getFinishedSteps());
+
+    return response;
+}}

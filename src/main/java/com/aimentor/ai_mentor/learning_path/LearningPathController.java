@@ -21,11 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class LearningPathController {
     private final LearningPathService learningPathService;
     
-    @PostMapping("/{id}")
-    public ResponseCreatePlan createPlan(@PathVariable UUID id, @RequestBody String path) {
-        return learningPathService.createPlan(id,path);
-        
-        
-    }
-    
+   @PostMapping("/{id}")
+    public ResponseCreatePlan createPlan(@PathVariable UUID id) {
+    return learningPathService.createPlan(id);
+}
 }

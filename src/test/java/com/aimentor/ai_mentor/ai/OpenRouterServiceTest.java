@@ -1,4 +1,3 @@
-
 package com.aimentor.ai_mentor.ai;
 
 import org.junit.jupiter.api.Test;
@@ -6,13 +5,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class GeminiServiceTest {
+class OpenRouterServiceTest {
 
     @Test
-    void shouldGetResponseFromGemini() {
-        GeminiService geminiService = new GeminiService();
+    void shouldGetResponseFromOpenRouter() {
+        OpenRouterService openRouterService = new OpenRouterService();
 
-        String response = geminiService.ask(
+        String response = openRouterService.ask(
                 "Explain what Java is in one short sentence."
         );
 
@@ -22,3 +21,4 @@ class GeminiServiceTest {
         System.out.println(response);
     }
 }
+
