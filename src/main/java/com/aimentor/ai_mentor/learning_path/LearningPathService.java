@@ -13,7 +13,7 @@ import com.aimentor.ai_mentor.learning_goal.exception.GoalNotFoundException;
 import com.aimentor.ai_mentor.learning_path.DTO.ResponseCreatePlan;
 import com.aimentor.ai_mentor.learning_path.exception.LearningPathAlreadyExistsException;
 import com.aimentor.ai_mentor.user.User;
-import com.aimentor.ai_mentor.ai.OpenRouterService;
+import com.aimentor.ai_mentor.ai.GeminiService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class LearningPathService {
     private final LearningPathRepository learningPathRepository;
     private final LearningGoalsRepository learningGoalsRepository;
-    private final OpenRouterService openRouterService;
+    private final GeminiService geminiService;
     //create plan
     public ResponseCreatePlan createPlan(UUID goalId) {
     LearningGoal goal = learningGoalsRepository.findById(goalId)
@@ -68,7 +68,7 @@ public class LearningPathService {
                     goal.getDeadline()
             );
 
-    String plan = openRouterService.ask(prompt);
+    String plan = geminiService.ask(prompt);
 
     LearningPath path = new LearningPath();
     path.setPlan(plan);

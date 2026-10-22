@@ -1,3 +1,4 @@
+
 package com.aimentor.ai_mentor.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,18 +14,18 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 @Service
-public class OpenRouterService {
+public class GeminiService {
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final String apiKey;
 
-    public OpenRouterService() {
-        this.apiKey = System.getenv("OPENROUTER_API_KEY");
+    public GeminiService() {
+        this.apiKey = System.getenv("GEMINI_API_KEY");
 
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException(
-                    "Environment variable OPENROUTER_API_KEY is not set"
+                    "Environment variable GEMINI_API_KEY is not set"
             );
         }
 
@@ -38,20 +39,25 @@ public class OpenRouterService {
     public String ask(String prompt) {
         try {
             ObjectNode body = objectMapper.createObjectNode();
-            body.put("model", "cohere/north-mini-code:free");
-            body.put("max_tokens", 300);
 
-            var messages = body.putArray("messages");
-            var message = messages.addObject();
-            message.put("role", "user");
-            message.put("content", prompt);
+            var contents = body.putArray("contents");
+            var content = contents.addObject();
+            content.put("role", "user");
+
+            var parts = content.putArray("parts");
+            parts.addObject().put("text", prompt);
+
+            ObjectNode generationConfig =
+                    body.putObject("generationConfig");
+            generationConfig.put("maxOutputTokens", 1500);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(
-                            "https://openrouter.ai/api/v1/chat/completions"
+                            "https://generativelanguage.googleapis.com/"
+                            + "v1beta/models/gemini-2.5-flash:generateContent"
                     ))
-                    .timeout(Duration.ofSeconds(60))
-                    .header("Authorization", "Bearer " + apiKey)
+                    .timeout(Duration.ofSeconds(90))
+                    .header("x-goog-api-key", apiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(
                             objectMapper.writeValueAsString(body)
@@ -66,33 +72,44 @@ public class OpenRouterService {
             if (response.statusCode() < 200
                     || response.statusCode() >= 300) {
                 throw new IllegalStateException(
-                        "OpenRouter returned HTTP "
+                        "Gemini returned HTTP "
                                 + response.statusCode()
+                                + ": " + response.body()
                 );
             }
 
-            JsonNode content = objectMapper.readTree(response.body())
-                    .path("choices")
+            JsonNode partsNode = objectMapper.readTree(response.body())
+                    .path("candidates")
                     .path(0)
-                    .path("message")
-                    .path("content");
+                    .path("content")
+                    .path("parts");
 
-            if (!content.isTextual() || content.asText().isBlank()) {
+            StringBuilder answer = new StringBuilder();
+
+            for (JsonNode part : partsNode) {
+                JsonNode textNode = part.path("text");
+
+                if (textNode.isTextual()) {
+                    answer.append(textNode.asText());
+                }
+            }
+
+            if (answer.isEmpty() || answer.toString().isBlank()) {
                 throw new IllegalStateException(
-                        "OpenRouter returned an empty response"
+                        "Gemini returned an empty response"
                 );
             }
 
-            return content.asText();
+            return answer.toString();
 
         } catch (IOException e) {
             throw new IllegalStateException(
-                    "Failed to communicate with OpenRouter", e
+                    "Failed to communicate with Gemini", e
             );
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(
-                    "OpenRouter request was interrupted", e
+                    "Gemini request was interrupted", e
             );
         }
     }
